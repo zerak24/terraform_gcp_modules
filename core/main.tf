@@ -104,30 +104,27 @@ resource "google_compute_address" "ip_address" {
   network_tier = "STANDARD"
 }
 
-module "template" {
-  for_each =  var.ce
-  source               = "git::https://github.com/terraform-google-modules/terraform-google-vm.git//modules/instance_template?ref=v12.0.0"
+# module "template" {
+#   for_each =  var.ce
+#   source               = "git::https://github.com/terraform-google-modules/terraform-google-vm.git//modules/instance_template?ref=v12.0.0"
   
-  project_id           = var.project.project_id
-  region               = var.project.region
-  # network              = module.vpc[0].network_self_link
-  # subnetwork           = module.vpc[0].subnets_self_links[index(var.vpc[0].subnets_names, "${each.value.subnetwork_name}")]
-  disk_size_gb         = each.value.disk_size_gb
-  disk_type            = each.value.disk_type
-  machine_type         = each.value.machine_type
-  source_image         = "ubuntu-2204-lts"
-  source_image_project = "ubuntu-os-cloud"
-  name_prefix          = format("%s-%s-%s", var.project.company, var.project.env, each.key)
-  service_account = {
-    email  = "default"
-    scopes = ["https://www.googleapis.com/auth/cloud-platform"]
-  }
-  tags = each.value.tags
-}
+#   project_id           = var.project.project_id
+#   region               = var.project.region
+#   # network              = module.vpc[0].network_self_link
+#   # subnetwork           = module.vpc[0].subnets_self_links[index(var.vpc[0].subnets_names, "${each.value.subnetwork_name}")]
+#   disk_size_gb         = each.value.disk_size_gb
+#   disk_type            = each.value.disk_type
+#   machine_type         = each.value.machine_type
+#   source_image         = "ubuntu-2204-lts"
+#   source_image_project = "ubuntu-os-cloud"
+#   name_prefix          = format("%s-%s-%s", var.project.company, var.project.env, each.key)
+#   service_account = {
+#     email  = "default"
+#     scopes = ["https://www.googleapis.com/auth/cloud-platform"]
+#   }
+#   tags = each.value.tags
+# }
 
-locals {
-  index = index(var.vpc[0].subnets_names, "${each.value.subnetwork_name}")
-}
 
 # module "compute" {
 #   for_each =  var.ce
