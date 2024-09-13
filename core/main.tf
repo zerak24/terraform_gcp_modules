@@ -111,7 +111,7 @@ module "template" {
   project_id           = var.project.project_id
   region               = var.project.region
   # network              = module.vpc[0].network_self_link
-  # subnetwork           = module.vpc[0].subnets_self_links["${each.subnetwork_name}"]
+  # subnetwork           = module.vpc[0].subnets_self_links[index(var.vpc[0].subnets_names, "${each.value.subnetwork_name}")]
   disk_size_gb         = each.value.disk_size_gb
   disk_type            = each.value.disk_type
   machine_type         = each.value.machine_type
@@ -125,19 +125,23 @@ module "template" {
   tags = each.value.tags
 }
 
-# module "compute" {
-#   for_each =  var.ce
-#   source              = "git::https://github.com/terraform-google-modules/terraform-google-vm.git//modules/compute_instance?ref=v12.0.0"
-#   subnetwork_project  = var.project.project_id
-#   region              = var.project.region
-#   network              = module.vpc[0].network_self_link
-#   subnetwork           = module.vpc[0].subnets_self_links["${each.value.subnetwork_name}"]
-#   hostname            = format("%s-%s-%s-compute-engine", var.project.company, var.project.env, each.key)
-#   add_hostname_suffix = false
-#   instance_template   = module.template["${each.key}"].self_link_unique
-#   num_instances       = "1"
-#   access_config = [{
-#     nat_ip       = google_compute_address.ip_address["${each.key}"].address
-#     network_tier = "STANDARD"
-#   }]
-# }
+locals {
+  index = index(var.vpc[0].subnets_names, "${each.value.subnetwork_name}")
+}
+
+module "compute" {
+  for_each =  var.ce
+  source              = "git::https://github.com/terraform-google-modules/terraform-google-vm.git//modules/compute_instance?ref=v12.0.0"
+  subnetwork_project  = var.project.project_id
+  region              = var.project.region
+  network             = module.vpc[0].network_self_link
+  subnetwork          = module.vpc[0].subnets_self_links[index(var.vpc[0].subnets_names, "${each.value.subnetwork_name}")]
+  hostname            = format("%s-%s-%s-compute-engine", var.project.company, var.project.env, each.key)
+  add_hostname_suffix = false
+  instance_template   = module.template["${each.key}"].self_link_unique
+  num_instances       = "1"
+  access_config = [{
+    nat_ip       = google_compute_address.ip_address["${each.key}"].address
+    network_tier = "STANDARD"
+  }]
+}
