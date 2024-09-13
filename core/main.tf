@@ -112,9 +112,9 @@ module "template" {
   region               = var.project.region
   network              = module.vpc[0].network_self_link
   subnetwork           = module.vpc[0].subnets_self_links[index(var.vpc[0].subnets_names, "${each.value.subnetwork_name}")]
-  disk_size_gb         = each.value.disk_size_gb
-  disk_type            = each.value.disk_type
-  machine_type         = each.value.machine_type
+  # disk_size_gb         = each.value.disk_size_gb
+  # disk_type            = each.value.disk_type
+  # machine_type         = each.value.machine_type
   source_image         = "ubuntu-2204-lts"
   source_image_project = "ubuntu-os-cloud"
   name_prefix          = format("%s-%s-%s", var.project.company, var.project.env, each.key)
