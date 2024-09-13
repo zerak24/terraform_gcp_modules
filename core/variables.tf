@@ -58,3 +58,14 @@ variable "db" {
   }))
   default = {}
 }
+
+variable "ce" {
+  type = map(object({
+    subnetwork_name = optional(string)
+    disk_size_gb    = optional(string)
+    disk_type       = optional(string)
+    machine_type    = optional(string)
+    name_prefix     = optional(string)
+    tags            = optional(list(any))
+  }))
+}

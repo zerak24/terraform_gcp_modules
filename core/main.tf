@@ -91,7 +91,8 @@ module "mysql" {
   ip_configuration = {
     ipv4_enabled = false
     # ssl_mode = "ALLOW_UNENCRYPTED_AND_ENCRYPTED"
-    private_network = format("https://www.googleapis.com/compute/v1/projects/%v/global/networks/%v", var.project.project_id, module.vpc[0].network_name)
+    # private_network = format("https://www.googleapis.com/compute/v1/projects/%v/global/networks/%v", var.project.project_id, module.vpc[0].network_name)
+    private_network = module.vpc[0].network_self_link
     #   allocated_ip_range = "default-sql"
   }
   backup_configuration = {
@@ -99,4 +100,56 @@ module "mysql" {
     start_time                     = "3:00"
     point_in_time_recovery_enabled = false
   }
+}
+
+resource "google_compute_address" "ip_address" {
+  for_each = var.ce
+
+  project      = var.project.project_id
+  region       = var.project.region
+  name         = format("%s-%s-%s-external-ip", var.project.company, var.project.env, each.key)
+  address_type = "EXTERNAL"
+  network_tier = "STANDARD"
+}
+
+module "template" {
+  for_each =  var.ce
+  source               = "git::https://github.com/terraform-google-modules/terraform-google-vm.git//modules/instance_template?ref=v12.0.0"
+  
+  project_id           = var.project.project_id
+  region               = var.project.region
+  # network              = "https://www.googleapis.com/compute/v1/projects/${var.project.project_id}/global/networks/${var.project.env}"
+  # subnetwork           = "https://www.googleapis.com/compute/v1/projects/${var.project.project_id}/regions/${var.project.region}/subnetworks/${var.project.env}-${var.inputs.template.subnetwork_name}"
+  # network              = module.vpc[0].network_self_link
+  # subnetwork           = module.vpc[0].subnets_self_links["${each.subnetwork_name}"]
+  disk_size_gb         = each.value.disk_size_gb
+  disk_type            = each.value.disk_type
+  machine_type         = each.value.machine_type
+  source_image         = "ubuntu-2204-lts"
+  source_image_project = "ubuntu-os-cloud"
+  name_prefix          = format("%s-%s-%s", var.project.company, var.project.env, each.key)
+  service_account = {
+    email  = "default"
+    scopes = ["https://www.googleapis.com/auth/cloud-platform"]
+  }
+  tags = each.value.tags
+}
+
+module "compute" {
+  for_each =  var.ce
+  source              = "git::https://github.com/terraform-google-modules/terraform-google-vm.git//modules/computer_instance?ref=v12.0.0"
+  subnetwork_project  = var.project.project_id
+  region              = var.project.region
+  # network             = "https://www.googleapis.com/compute/v1/projects/${var.project.project_id}/global/networks/${var.project.env}"
+  # subnetwork          = "https://www.googleapis.com/compute/v1/projects/${var.project.project_id}/regions/${var.project.region}/subnetworks/${var.project.env}-${var.inputs.template.subnetwork_name}"
+  network              = module.vpc[0].network_self_link
+  subnetwork           = module.vpc[0].subnets_self_links["${each.value.subnetwork_name}"]
+  hostname            = format("%s-%s-%s-compute-engine", var.project.company, var.project.env, each.key)
+  add_hostname_suffix = false
+  instance_template   = module.template["${each.key}"].self_link_unique
+  num_instances       = "1"
+  access_config = [{
+    nat_ip       = google_compute_address.ip_address["${each.key}"].address
+    network_tier = "STANDARD"
+  }]
 }
