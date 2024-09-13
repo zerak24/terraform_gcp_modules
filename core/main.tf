@@ -58,7 +58,6 @@ module "postgresql" {
   disk_autoresize_limit       = each.value.disk_autoresize_limit
   ip_configuration = {
     ipv4_enabled = false
-    require_ssl  = false
     # ssl_mode = "ALLOW_UNENCRYPTED_AND_ENCRYPTED"
     private_network = format("https://www.googleapis.com/compute/v1/projects/%v/global/networks/%v", var.project.project_id, module.vpc[0].network_name)
     #   allocated_ip_range = "default-sql"
@@ -91,7 +90,6 @@ module "mysql" {
   disk_autoresize_limit       = each.value.disk_autoresize_limit
   ip_configuration = {
     ipv4_enabled = false
-    require_ssl  = false
     # ssl_mode = "ALLOW_UNENCRYPTED_AND_ENCRYPTED"
     private_network = format("https://www.googleapis.com/compute/v1/projects/%v/global/networks/%v", var.project.project_id, module.vpc[0].network_name)
     #   allocated_ip_range = "default-sql"
