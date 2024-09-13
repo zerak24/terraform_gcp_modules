@@ -1,6 +1,3 @@
-locals {
-  secondary_ranges = { for sub in var.vpc.subnets : sub.subnet_name => sub.secondary_ranges }
-}
 module "vpc" {
   count = var.vpc == null ? 0 : 1
   source = "git::https://github.com/terraform-google-modules/terraform-google-network.git?ref=v9.2.0"
@@ -58,9 +55,7 @@ module "postgresql" {
   disk_autoresize_limit       = each.value.disk_autoresize_limit
   ip_configuration = {
     ipv4_enabled = false
-    # ssl_mode = "ALLOW_UNENCRYPTED_AND_ENCRYPTED"
-    private_network = format("https://www.googleapis.com/compute/v1/projects/%v/global/networks/%v", var.project.project_id, module.vpc[0].network_name)
-    #   allocated_ip_range = "default-sql"
+    private_network = module.vpc[0].network_self_link
   }
   backup_configuration = {
     enabled                        = true
@@ -90,10 +85,7 @@ module "mysql" {
   disk_autoresize_limit       = each.value.disk_autoresize_limit
   ip_configuration = {
     ipv4_enabled = false
-    # ssl_mode = "ALLOW_UNENCRYPTED_AND_ENCRYPTED"
-    # private_network = format("https://www.googleapis.com/compute/v1/projects/%v/global/networks/%v", var.project.project_id, module.vpc[0].network_name)
     private_network = module.vpc[0].network_self_link
-    #   allocated_ip_range = "default-sql"
   }
   backup_configuration = {
     enabled                        = true
@@ -118,8 +110,6 @@ module "template" {
   
   project_id           = var.project.project_id
   region               = var.project.region
-  # network              = "https://www.googleapis.com/compute/v1/projects/${var.project.project_id}/global/networks/${var.project.env}"
-  # subnetwork           = "https://www.googleapis.com/compute/v1/projects/${var.project.project_id}/regions/${var.project.region}/subnetworks/${var.project.env}-${var.inputs.template.subnetwork_name}"
   # network              = module.vpc[0].network_self_link
   # subnetwork           = module.vpc[0].subnets_self_links["${each.subnetwork_name}"]
   disk_size_gb         = each.value.disk_size_gb
@@ -137,11 +127,9 @@ module "template" {
 
 module "compute" {
   for_each =  var.ce
-  source              = "git::https://github.com/terraform-google-modules/terraform-google-vm.git//modules/computer_instance?ref=v12.0.0"
+  source              = "git::https://github.com/terraform-google-modules/terraform-google-vm.git//modules/compute_instance?ref=v12.0.0"
   subnetwork_project  = var.project.project_id
   region              = var.project.region
-  # network             = "https://www.googleapis.com/compute/v1/projects/${var.project.project_id}/global/networks/${var.project.env}"
-  # subnetwork          = "https://www.googleapis.com/compute/v1/projects/${var.project.project_id}/regions/${var.project.region}/subnetworks/${var.project.env}-${var.inputs.template.subnetwork_name}"
   network              = module.vpc[0].network_self_link
   subnetwork           = module.vpc[0].subnets_self_links["${each.value.subnetwork_name}"]
   hostname            = format("%s-%s-%s-compute-engine", var.project.company, var.project.env, each.key)
