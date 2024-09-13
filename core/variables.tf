@@ -70,3 +70,19 @@ variable "ce" {
   }))
   default = {}
 }
+
+variable "gke" {
+  type = object({
+    zones    = optional(list(string))
+    subnet   = optional(string)
+    pod_cidr = optional(string)
+    svc_cidr = optional(string)
+    node_pools = optional(map(object({
+      machine_type = optional(string)
+      min_nodes    = optional(number, 0)
+      max_nodes    = optional(number, 100)
+      spot_plan    = optional(bool, false)
+    })))
+  })
+  default = null
+}

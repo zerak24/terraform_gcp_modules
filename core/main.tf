@@ -125,19 +125,82 @@ module "template" {
   tags = each.value.tags
 }
 
-# module "compute" {
-#   for_each =  var.ce
-#   source              = "git::https://github.com/terraform-google-modules/terraform-google-vm.git//modules/compute_instance?ref=v12.0.0"
-#   subnetwork_project  = var.project.project_id
-#   region              = var.project.region
-#   network             = module.vpc[0].network_self_link
-#   subnetwork          = module.vpc[0].subnets_self_links[index(var.vpc[0].subnets_names, "${each.value.subnetwork_name}")]
-#   hostname            = format("%s-%s-%s-compute-engine", var.project.company, var.project.env, each.key)
-#   add_hostname_suffix = false
-#   instance_template   = module.template["${each.key}"].self_link_unique
-#   num_instances       = "1"
-#   access_config = [{
-#     nat_ip       = google_compute_address.ip_address["${each.key}"].address
-#     network_tier = "STANDARD"
-#   }]
-# }
+module "compute" {
+  for_each =  var.ce
+  source              = "git::https://github.com/terraform-google-modules/terraform-google-vm.git//modules/compute_instance?ref=v12.0.0"
+  subnetwork_project  = var.project.project_id
+  region              = var.project.region
+  network             = module.vpc[0].network_self_link
+  subnetwork          = module.vpc[0].subnets_self_links[index(var.vpc[0].subnets_names, "${each.value.subnetwork_name}")]
+  hostname            = format("%s-%s-%s-compute-engine", var.project.company, var.project.env, each.key)
+  add_hostname_suffix = false
+  instance_template   = module.template["${each.key}"].self_link_unique
+  num_instances       = "1"
+  access_config = [{
+    nat_ip       = google_compute_address.ip_address["${each.key}"].address
+    network_tier = "STANDARD"
+  }]
+}
+
+data "google_client_config" "default" {}
+
+provider "kubernetes" {
+  host                   = "https://${module.gke.endpoint}"
+  token                  = data.google_client_config.default.access_token
+  cluster_ca_certificate = base64decode(module.gke.ca_certificate)
+}
+
+module "gke" {
+  count = var.gke == null ? 0 : 1
+  source                     = "git::https://github.com/terraform-google-modules/terraform-google-kubernetes-engine.git?ref=v33.0.1"
+
+  project_id                 = var.project.project_id
+  name                       = var.project.env
+  region                     = var.project.region
+  zones                      = var.gke.zones
+  network                    = var.project.env
+  subnetwork                 = var.gke.subnet
+  ip_range_pods              = var.gke.pod_cidr
+  ip_range_services          = var.gke.svc_cidr
+  http_load_balancing        = false
+  network_policy             = false
+  horizontal_pod_autoscaling = true
+  filestore_csi_driver       = true
+  create_service_account     = true
+  service_account_name       = "cli-service-account-1@playground-s-11-ea852893.iam.gserviceaccount.com"
+  remove_default_node_pool   = true
+  deletion_protection        = false
+  release_channel            = "STABLE"
+
+  cluster_autoscaling = {}
+
+  node_pools = [for k, v in var.gke.node_pools :
+    {
+      name                        = each.key
+      machine_type                = each.machine_type
+      node_locations              = var.gke.zones[idx]
+      min_count                   = each.min_nodes
+      max_count                   = each.max_nodes
+      local_ssd_count             = 0
+      spot                        = each.spot_plan
+      disk_size_gb                = 50
+      disk_type                   = "pd-standard"
+      image_type                  = "COS_CONTAINERD"
+      enable_gcfs                 = false
+      enable_gvnic                = false
+      logging_variant             = "DEFAULT"
+      auto_repair                 = true
+      auto_upgrade                = true
+      service_account_name        = "${each.key}-gke-service-account"
+      preemptible                 = false
+      enable_integrity_monitoring = false
+    }
+  ]
+
+  node_pools_oauth_scopes = {
+    all = [
+      "https://www.googleapis.com/auth/logging.write",
+      "https://www.googleapis.com/auth/monitoring",
+    ]
+  }
+}
