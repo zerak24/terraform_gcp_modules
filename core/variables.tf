@@ -68,4 +68,5 @@ variable "ce" {
     name_prefix     = optional(string)
     tags            = optional(list(any))
   }))
+  default = {}
 }
