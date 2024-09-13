@@ -2,7 +2,7 @@ module "vpc" {
   count = var.vpc == null ? 0 : 1
   source = "git::https://github.com/terraform-google-modules/terraform-google-network.git?ref=v9.2.0"
 
-  # project_id   = var.project.project_id
+  project_id   = var.project.project_id
   network_name = format("%s-%s-vpc", var.project.company, var.project.env)
   routing_mode = "GLOBAL"
 
@@ -31,8 +31,8 @@ module "nat" {
   for_each = var.nat
   source        = "git::https://github.com/terraform-google-modules/terraform-google-cloud-nat.git?ref=v5.3.0"
 
-  # project_id    = var.project.project_id
-  # region        = var.project.region
+  project_id    = var.project.project_id
+  region        = var.project.region
   name          = format("%v-%v", var.project.env, each.value.name)
   create_router = each.value.create_router
   router        = format("%v-%v-router", var.project.env, each.value.name)

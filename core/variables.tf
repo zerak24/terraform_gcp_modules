@@ -3,6 +3,7 @@ variable "project" {
     project_id = string
     region     = string
     env        = string
+    company    = string
   })
 }
 variable "vpc" {
