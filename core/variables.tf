@@ -11,11 +11,12 @@ variable "vpc" {
     subnets = optional(list(object({
       subnet_name = optional(string)
       subnet_ip   = optional(string)
+      nat_enabled = optional(bool, false)
+      secondary_ranges = optional(list(object({
+        range_name    = optional(string)
+        ip_cidr_range = optional(string)
+      })))
     })))
-    secondary_ranges = optional(map(list(object({
-      range_name    = optional(string)
-      ip_cidr_range = optional(string)
-    }))))
     routes = optional(list(any), [])
     egress_rules = optional(list(object({
       name          = optional(string)
@@ -36,17 +37,4 @@ variable "vpc" {
     })), [])
   })
   default = null
-}
-
-variable "nat" {
-  type = map(object({
-    name = optional(string)
-    subnets = optional(list(object({
-      name                     = optional(string)
-      source_ip_ranges_to_nat  = optional(list(string))
-      secondary_ip_range_names = optional(list(string))
-    })))
-    create_router = optional(bool, true)
-  }))
-  default = {}
 }

@@ -1,3 +1,6 @@
+locals {
+  secondary_ranges = { for sub in var.vpc.subnets : sub.subnet_name => sub.secondary_ranges }
+}
 module "vpc" {
   count = var.vpc == null ? 0 : 1
   source = "git::https://github.com/terraform-google-modules/terraform-google-network.git?ref=v9.2.0"
@@ -8,17 +11,12 @@ module "vpc" {
 
   subnets = [for sub in var.vpc.subnets :
     {
-      subnet_name           = format("%v-%v", var.project.env, sub.subnet_name)
+      subnet_name           = format("%s-%s", var.project.env, sub.subnet_name)
       subnet_ip             = sub.subnet_ip
       subnet_region         = var.project.region
-      subnet_private_access = false
   }]
 
-  secondary_ranges = merge([for key, value in var.vpc.secondary_ranges :
-    {
-      format(format("%v-%v", var.project.env, key)) = value
-    }
-  ]...)
+  secondary_ranges = { for sub in var.vpc.subnets : format("%s-%s", var.project.env, sub.subnet_name) => sub.secondary_ranges if sub.secondary_ranges != null }
 
   routes = var.vpc.routes
 
@@ -28,21 +26,13 @@ module "vpc" {
 }
 
 module "nat" {
-  for_each = var.nat
+  for_each = { for sub in var.vpc.subnets : sub.subnet_name => {} if sub.nat_enabled }
   source        = "git::https://github.com/terraform-google-modules/terraform-google-cloud-nat.git?ref=v5.3.0"
 
   project_id    = var.project.project_id
   region        = var.project.region
-  name          = format("%v-%v", var.project.env, each.value.name)
-  create_router = each.value.create_router
-  router        = format("%v-%v-router", var.project.env, each.value.name)
+  name          = format("%v-%v", var.project.env, each.key)
+  create_router = true
+  router        = format("%v-%v-router", var.project.env, each.key)
   network       = module.vpc[0].network_name
-  subnetworks = [for sub in each.value.subnets :
-    {
-      name                     = format("%v-%v", var.project.env, each.value.name)
-      source_ip_ranges_to_nat  = sub.source_ip_ranges_to_nat
-      secondary_ip_range_names = sub.secondary_ip_range_names
-    }
-  ]
-  source_subnetwork_ip_ranges_to_nat = "LIST_OF_SUBNETWORKS"
 }
