@@ -38,3 +38,23 @@ variable "vpc" {
   })
   default = null
 }
+
+variable "db" {
+  type = map(object({
+      type                        = optional(string)
+      name                        = optional(string)
+      database_version            = optional(string)
+      tier                        = optional(string)
+      zone                        = optional(string)
+      availability_type           = optional(string)
+      deletion_protection_enabled = optional(bool, true)
+      database_flags              = optional(list(any), [])
+      read_replica_name_suffix    = optional(string)
+      read_replicas               = optional(list(any), [])
+      disk_size                   = optional(number)
+      disk_type                   = optional(string)
+      disk_autoresize             = optional(bool, true)
+      disk_autoresize_limit       = optional(number, 0)
+  }))
+  default = {}
+}
