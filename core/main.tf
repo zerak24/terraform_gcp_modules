@@ -155,7 +155,7 @@ module "gke" {
   source                     = "git::https://github.com/terraform-google-modules/terraform-google-kubernetes-engine.git?ref=v33.0.1"
 
   project_id                 = var.project.project_id
-  name                       = var.project.env
+  name                       = format("%s-%s-eks", var.project.company, var.project.env)
   region                     = var.project.region
   zones                      = var.gke.zones
   network                    = var.project.env
