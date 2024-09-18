@@ -1,8 +1,8 @@
 data "google_client_config" "default" {}
 
 data "google_container_cluster" "gke" {
- name     = format("%s-%s-eks", var.project.company, var.project.env)
-  zone     = var.project.region
+  name     = format("%s-%s-eks", var.project.company, var.project.env)
+  location = var.project.region
 }
 
 provider "kubernetes" {
@@ -12,7 +12,7 @@ provider "kubernetes" {
 }
 
 module "workload-identity" {
-  count = var.role == null : 0 ? 1
+  count = var.role == null ? 0 : 1
   source              = "git::https://github.com/terraform-google-modules/terraform-google-kubernetes-engine.git//module/workload-identity?ref=v33.0.1"
   
   project_id          = var.project.project_id

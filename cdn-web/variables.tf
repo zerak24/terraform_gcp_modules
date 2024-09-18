@@ -6,9 +6,27 @@ variable "project" {
     company    = string
   })
 }
-variable "inputs" {
-  type = map(object({
-    cdn_domain = string
-  }))
-  default = {}
+variable "cdn" {
+  type = object({
+    name = string
+    enabled_ipv6 = optional(bool, false)
+    custom_request_headers = optional(list(string))
+    custom_response_headers = optional(list(string))
+    timeout_sec = optional(number, 60)
+    log_enable = optional(bool, false)
+    cdn_config = optional(object({
+      cache_mode        = optional(string, "CACHE_ALL_STATIC")
+      client_ttl        = optional(number, 300)
+      client_ttl        = optional(number, 3600)
+      max_ttl           = optional(number, 86400)
+    }))
+  })
+  default = null
+}
+variable "bucket" {
+  type = object({
+    name = string
+    cors = set(map(string))
+  })
+  default = null
 }
