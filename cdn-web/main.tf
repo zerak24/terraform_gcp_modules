@@ -52,6 +52,7 @@ resource "google_compute_backend_bucket" "default" {
 
 resource "google_compute_url_map" "default" {
   count = var.bucket == null ? 0 : 1
+  project = var.project.project_id
   name       = var.cdn.name
   default_service = google_compute_backend_bucket.default[0].id
 }
