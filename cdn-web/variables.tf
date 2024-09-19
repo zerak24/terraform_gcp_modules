@@ -19,7 +19,12 @@ variable "cdn" {
       client_ttl        = optional(number, 300)
       default_ttl       = optional(number, 3600)
       max_ttl           = optional(number, 86400)
-    }))
+    }), {
+      cache_mode        = "CACHE_ALL_STATIC"
+      client_ttl        = 300
+      default_ttl       = 3600
+      max_ttl           = 86400
+    })
   })
   default = null
 }
