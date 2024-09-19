@@ -26,7 +26,7 @@ module "cdn" {
       }
     }
   }
-  private_key = var.cdn.private_key == "" ? tls_private_key.private_key_pem : var.cdn.private_key
+  private_key = var.cdn.private_key == "" ? tls_private_key.private_key[0].private_key_pem : var.cdn.private_key
   url_map = google_compute_url_map.default[0].self_link
   enable_ipv6 = var.cdn.enable_ipv6
   create_ipv6_address = var.cdn.enable_ipv6
@@ -35,7 +35,7 @@ module "cdn" {
   create_address = true
 }
 
-resource "tls_private_key" "example" {
+resource "tls_private_key" "private_key" {
   count = var.cdn.private_key == "" ? 1 : 0
   algorithm = "RSA"
   rsa_bits  = 2048
