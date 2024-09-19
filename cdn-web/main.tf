@@ -35,8 +35,9 @@ module "cdn" {
 }
 
 resource "google_compute_backend_bucket" "default" {
+  count = var.cdn == null || var.bucket == null ? 0 : 1
   name        = var.bucket.name
-  bucket_name = module.bucket[0].names[0]
+  bucket_name = module.bucket[0].names["${var.bucket.name}"]
   enable_cdn  = true
   cdn_policy {
     cache_mode        = var.cdn.cdn_config.cache_mode
@@ -49,12 +50,13 @@ resource "google_compute_backend_bucket" "default" {
 }
 
 resource "google_compute_url_map" "default" {
+  count = var.bucket == null ? 0 : 1
   name       = var.cdn.name
   default_service = google_compute_backend_bucket.default.id
 }
 
 module "bucket" {
-  count = var.cdn == null ? 0 : 1
+  count = var.bucket == null ? 0 : 1
   source = "git::https://github.com/terraform-google-modules/terraform-google-cloud-storage.git?ref=v6.1.0"
 
   project_id = var.project.project_id
