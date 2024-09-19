@@ -143,11 +143,19 @@ resource "google_compute_url_map" "default" {
   default_service = google_compute_backend_bucket.default[0].id
 }
 
+resource "google_compute_managed_ssl_certificate" "default" {
+  count = var.cdn == null ? 0 : 1
+  name = var.cdn.name
+  managed {
+    domains = var.cdn.managed_ssl_certificate_domains
+  }
+}
+
 resource "google_compute_target_https_proxy" "default" {
   count = var.cdn == null ? 0 : 1
   name = var.cdn.name
   url_map = google_compute_url_map.default[0].id
-  ssl_certificates = [google_compute_managed_ssl_certificate.default.id]
+  ssl_certificates = [google_compute_managed_ssl_certificate.default[0].id]
 }
 
 resource "google_compute_global_forwarding_rule" "default" {
@@ -158,12 +166,4 @@ resource "google_compute_global_forwarding_rule" "default" {
   port_range            = "80"
   target                = google_compute_target_https_proxy.default[0].id
   ip_address            = google_compute_global_address.default[0].id
-}
-
-resource "google_compute_managed_ssl_certificate" "default" {
-  count = var.cdn == null ? 0 : 1
-  name = var.cdn.name
-  managed {
-    domains = var.cdn.managed_ssl_certificate_domains
-  }
 }
