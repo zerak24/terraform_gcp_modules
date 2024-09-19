@@ -2,7 +2,6 @@ module "cdn" {
   count = var.cdn == null ? 0 : 1
   source     = "git::https://github.com/terraform-google-modules/terraform-google-lb-http.git?ref=v12.0.0"
   project = var.project.project_id
-  region     = var.project.region
   name       = var.cdn.name
   backends = {
     default = {
@@ -37,7 +36,7 @@ module "cdn" {
 
 resource "google_compute_backend_bucket" "default" {
   name        = var.bucket.name
-  bucket_name = module.bucket[0].name
+  bucket_name = module.bucket[0].names[0]
   enable_cdn  = true
   cdn_policy {
     cache_mode        = var.cdn.cdn_config.cache_mode
