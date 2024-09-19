@@ -97,7 +97,7 @@ resource "google_storage_bucket" "default" {
     not_found_page   = "404.html"
   }
   dynamic "cors" {
-    for_each = toset(each.value.cors)
+    for_each = var.bucket.cors
     content {
       origin = cors.origin
       method = cors.method
