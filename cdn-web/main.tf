@@ -68,7 +68,7 @@ module "bucket" {
   }
   viewers = ["allUsers"]
   cors = toset([ for obj in var.bucket.cors: {
-    orgin = obj.origin
+    origin = obj.origin
     method = obj.method
     response_header = obj.response_header
     max_age_seconds = obj.max_age_seconds
