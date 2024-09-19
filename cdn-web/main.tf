@@ -37,6 +37,7 @@ module "cdn" {
 resource "google_compute_backend_bucket" "default" {
   count = var.cdn == null || var.bucket == null ? 0 : 1
   name        = var.bucket.name
+  project = var.project.project_id
   bucket_name = module.bucket[0].names["${var.bucket.name}"]
   enable_cdn  = true
   cdn_policy {
