@@ -88,7 +88,7 @@
 resource "google_storage_bucket" "default" {
   count = var.bucket == null ? 0 : 1
   project = var.project.project_id
-  name                        = var.bucket.name
+  name                        = format("%s-%s-%s-bucket", var.project.company, var.project.env, var.bucket.name)
   location                    = var.project.region
   uniform_bucket_level_access = true
   storage_class               = "STANDARD"
@@ -121,13 +121,13 @@ resource "google_storage_bucket_iam_member" "default" {
 resource "google_compute_global_address" "default" {
   count = var.cdn == null ? 0 : 1
   project = var.project.project_id
-  name = var.cdn.name
+  name = format("%s-%s-%s-ip", var.project.company, var.project.env, var.bucket.name)
 }
 
 resource "google_compute_backend_bucket" "default" {
   count = var.bucket == null ? 0 : 1
   project = var.project.project_id
-  name        = var.bucket.name
+  name        = format("%s-%s-%s-backend-bucket", var.project.company, var.project.env, var.bucket.name)
   bucket_name = google_storage_bucket.default[0].name
   enable_cdn  = true
   cdn_policy {
@@ -143,14 +143,14 @@ resource "google_compute_backend_bucket" "default" {
 resource "google_compute_url_map" "default" {
   count = var.cdn == null ? 0 : 1
   project = var.project.project_id
-  name = var.cdn.name
+  name = format("%s-%s-%s-url-map", var.project.company, var.project.env, var.bucket.name)
   default_service = google_compute_backend_bucket.default[0].id
 }
 
 resource "google_compute_managed_ssl_certificate" "default" {
   count = var.cdn == null ? 0 : 1
   project = var.project.project_id
-  name = var.cdn.name
+  name = format("%s-%s-%s-ssl-cert", var.project.company, var.project.env, var.bucket.name)
   managed {
     domains = var.cdn.managed_ssl_certificate_domains
   }
@@ -159,7 +159,7 @@ resource "google_compute_managed_ssl_certificate" "default" {
 resource "google_compute_target_https_proxy" "default" {
   count = var.cdn == null ? 0 : 1
   project = var.project.project_id
-  name = var.cdn.name
+  name = format("%s-%s-%s-proxy", var.project.company, var.project.env, var.bucket.name)
   url_map = google_compute_url_map.default[0].id
   ssl_certificates = [google_compute_managed_ssl_certificate.default[0].id]
 }
@@ -167,7 +167,7 @@ resource "google_compute_target_https_proxy" "default" {
 resource "google_compute_global_forwarding_rule" "default" {
   count = var.cdn == null ? 0 : 1
   project = var.project.project_id
-  name = var.cdn.name
+  name = format("%s-%s-%s-fw-rule", var.project.company, var.project.env, var.bucket.name)
   ip_protocol           = "TCP"
   load_balancing_scheme = "EXTERNAL"
   port_range            = "80"
