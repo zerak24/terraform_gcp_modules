@@ -26,7 +26,7 @@ variable "cdn" {
 variable "bucket" {
   type = object({
     name = string
-    cors = optional(set(map(string)))
+    cors = optional(set(map(any)))
     versioning = optional(bool, false)
   })
   default = null
