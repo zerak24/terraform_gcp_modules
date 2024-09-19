@@ -31,14 +31,8 @@ module "cdn" {
   enable_ipv6 = var.cdn.enable_ipv6
   create_ipv6_address = var.cdn.enable_ipv6
   ssl = true
-  create_ssl_certificate = true
+  managed_ssl_certificate_domains = var.cdn.managed_ssl_certificate_domains
   create_address = true
-}
-
-resource "tls_private_key" "private_key" {
-  count = var.cdn.private_key == "" ? 1 : 0
-  algorithm = "RSA"
-  rsa_bits  = 2048
 }
 
 resource "google_compute_backend_bucket" "default" {

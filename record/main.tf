@@ -8,3 +8,12 @@ module "dns" {
   domain                             = each.key
   recordsets                         = each.value.recordsets
 }
+
+resource "google_compute_managed_ssl_certificate" "certs" {
+  for_each = var.cloud_dns
+  name     = each.key
+
+  managed {
+    domains = ["${each.key}", format("*.%s", each.key)]
+  }
+}
