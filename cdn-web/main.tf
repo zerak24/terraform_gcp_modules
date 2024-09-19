@@ -67,7 +67,7 @@ module "bucket" {
     not_found_page   = "404.html"
   }
   viewers = ["allUsers"]
-  cors = var.bucket.cors
+  cors = [ for obj in var.bucket.cors: tomap(obj) ]
   versioning = {
     "${var.bucket.name}" = var.bucket.versioning
   }
