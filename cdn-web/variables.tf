@@ -17,7 +17,7 @@ variable "cdn" {
     cdn_config = optional(object({
       cache_mode        = optional(string, "CACHE_ALL_STATIC")
       client_ttl        = optional(number, 300)
-      client_ttl        = optional(number, 3600)
+      default_ttl       = optional(number, 3600)
       max_ttl           = optional(number, 86400)
     }))
   })
