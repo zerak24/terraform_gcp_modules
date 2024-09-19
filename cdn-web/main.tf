@@ -56,12 +56,12 @@ resource "google_compute_url_map" "default" {
 
 module "bucket" {
   count = var.cdn == null ? 0 : 1
-  source = "git::https://github.com/terraform-google-modules/terraform-google-cloud-storage.git//modules/simple_bucket?ref=v6.1.0"
+  source = "git::https://github.com/terraform-google-modules/terraform-google-cloud-storage.git?ref=v6.1.0"
 
   project_id = var.project.project_id
   location = var.project.region
 
-  name = var.bucket.name
+  names = [var.bucket.name]
 
   website = {
     main_page_suffix = "index.html"
