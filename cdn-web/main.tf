@@ -70,5 +70,4 @@ module "bucket" {
   viewers = ["allUsers"]
   cors = var.bucket.cors
   versioning = var.bucket.versioning
-  encryption = { default_kms_key_name = null }
 }
