@@ -32,7 +32,12 @@ variable "cdn" {
 variable "bucket" {
   type = object({
     name = string
-    cors = optional(list(any))
+    cors = optional(list(object({
+      origin = optional(list(string))
+      method = optional(list(string))
+      response_header = optional(list(string))
+      max_age_seconds = optional(number, 86400)
+    })))
     versioning = optional(bool, false)
   })
   default = null

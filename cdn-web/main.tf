@@ -87,6 +87,7 @@
 
 resource "google_storage_bucket" "default" {
   count = var.bucket == null ? 0 : 1
+  project = var.project.project_id
   name                        = var.bucket.name
   location                    = var.project.region
   uniform_bucket_level_access = true
@@ -119,11 +120,13 @@ resource "google_storage_bucket_iam_member" "default" {
 
 resource "google_compute_global_address" "default" {
   count = var.cdn == null ? 0 : 1
+  project = var.project.project_id
   name = var.cdn.name
 }
 
 resource "google_compute_backend_bucket" "default" {
   count = var.bucket == null ? 0 : 1
+  project = var.project.project_id
   name        = var.bucket.name
   bucket_name = google_storage_bucket.default[0].name
   enable_cdn  = true
@@ -139,12 +142,14 @@ resource "google_compute_backend_bucket" "default" {
 
 resource "google_compute_url_map" "default" {
   count = var.cdn == null ? 0 : 1
+  project = var.project.project_id
   name = var.cdn.name
   default_service = google_compute_backend_bucket.default[0].id
 }
 
 resource "google_compute_managed_ssl_certificate" "default" {
   count = var.cdn == null ? 0 : 1
+  project = var.project.project_id
   name = var.cdn.name
   managed {
     domains = var.cdn.managed_ssl_certificate_domains
@@ -153,6 +158,7 @@ resource "google_compute_managed_ssl_certificate" "default" {
 
 resource "google_compute_target_https_proxy" "default" {
   count = var.cdn == null ? 0 : 1
+  project = var.project.project_id
   name = var.cdn.name
   url_map = google_compute_url_map.default[0].id
   ssl_certificates = [google_compute_managed_ssl_certificate.default[0].id]
@@ -160,6 +166,7 @@ resource "google_compute_target_https_proxy" "default" {
 
 resource "google_compute_global_forwarding_rule" "default" {
   count = var.cdn == null ? 0 : 1
+  project = var.project.project_id
   name = var.cdn.name
   ip_protocol           = "TCP"
   load_balancing_scheme = "EXTERNAL"
