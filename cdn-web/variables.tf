@@ -14,6 +14,7 @@ variable "cdn" {
     custom_response_headers = optional(list(string))
     timeout_sec = optional(number, 60)
     log_enable = optional(bool, false)
+    private_key = optional(string)
     cdn_config = optional(object({
       cache_mode        = optional(string, "CACHE_ALL_STATIC")
       client_ttl        = optional(number, 300)
