@@ -100,10 +100,10 @@ resource "google_storage_bucket" "default" {
   dynamic "cors" {
     for_each = var.bucket.cors
     content {
-      origin = cors.origin
-      method = cors.method
-      response_header = cors.response_header
-      max_age_seconds = cors.max_age_seconds
+      origin = cors.value.origin
+      method = cors.value.method
+      response_header = cors.value.response_header
+      max_age_seconds = cors.value.max_age_seconds
     }
   }
   versioning {
