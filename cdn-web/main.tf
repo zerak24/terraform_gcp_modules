@@ -67,7 +67,12 @@ module "bucket" {
     not_found_page   = "404.html"
   }
   viewers = ["allUsers"]
-  cors = [ for obj in var.bucket.cors: tomap(obj) ]
+  cors = toset([ for obj in var.bucket.cors: {
+    orgin = obj.origin
+    method = obj.method
+    response_header = obj.response_header
+    max_age_seconds = obj.max_age_seconds
+  }])
   versioning = {
     "${var.bucket.name}" = var.bucket.versioning
   }
