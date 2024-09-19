@@ -9,7 +9,7 @@ variable "project" {
 variable "cdn" {
   type = object({
     name = string
-    enabled_ipv6 = optional(bool, false)
+    enable_ipv6 = optional(bool, false)
     custom_request_headers = optional(list(string))
     custom_response_headers = optional(list(string))
     timeout_sec = optional(number, 60)
