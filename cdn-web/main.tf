@@ -26,7 +26,7 @@ module "cdn" {
       }
     }
   }
-  url_map = google_compute_url_map.default.self_link
+  url_map = google_compute_url_map.default[0].self_link
   enable_ipv6 = var.cdn.enable_ipv6
   create_ipv6_address = var.cdn.enable_ipv6
   ssl = true
@@ -52,7 +52,7 @@ resource "google_compute_backend_bucket" "default" {
 resource "google_compute_url_map" "default" {
   count = var.bucket == null ? 0 : 1
   name       = var.cdn.name
-  default_service = google_compute_backend_bucket.default.id
+  default_service = google_compute_backend_bucket.default[0].id
 }
 
 module "bucket" {
