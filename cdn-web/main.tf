@@ -69,6 +69,6 @@ module "bucket" {
   viewers = ["allUsers"]
   cors = var.bucket.cors
   versioning = {
-    each.key = var.bucket.versioning
+    "${each.key}" = var.bucket.versioning
   }
 }
