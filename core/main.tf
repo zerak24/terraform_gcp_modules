@@ -1,5 +1,5 @@
 module "vpc" {
-  count = var.vpc == null ? 0 : 1
+  count  = var.vpc == null ? 0 : 1
   source = "git::https://github.com/terraform-google-modules/terraform-google-network.git?ref=v9.2.0"
 
   project_id   = var.project.project_id
@@ -8,9 +8,9 @@ module "vpc" {
 
   subnets = [for sub in var.vpc.subnets :
     {
-      subnet_name           = format("%s-%s", var.project.env, sub.subnet_name)
-      subnet_ip             = sub.subnet_ip
-      subnet_region         = var.project.region
+      subnet_name   = format("%s-%s", var.project.env, sub.subnet_name)
+      subnet_ip     = sub.subnet_ip
+      subnet_region = var.project.region
   }]
 
   secondary_ranges = { for sub in var.vpc.subnets : format("%s-%s", var.project.env, sub.subnet_name) => sub.secondary_ranges if sub.secondary_ranges != null }
@@ -23,8 +23,8 @@ module "vpc" {
 }
 
 module "nat" {
-  for_each = toset([ for sub in var.vpc.subnets : sub.subnet_name if sub.nat_enabled ])
-  source        = "git::https://github.com/terraform-google-modules/terraform-google-cloud-nat.git?ref=v5.3.0"
+  for_each = toset([for sub in var.vpc.subnets : sub.subnet_name if sub.nat_enabled])
+  source   = "git::https://github.com/terraform-google-modules/terraform-google-cloud-nat.git?ref=v5.3.0"
 
   project_id    = var.project.project_id
   region        = var.project.region
@@ -36,7 +36,7 @@ module "nat" {
 
 module "postgresql" {
   for_each = { for k, v in var.db : k => v if v.type == "postgresql" }
-  source = "git::git@github.com:terraform-google-modules/terraform-google-sql-db.git//modules/postgresql?ref=v21.0.2"
+  source   = "git::git@github.com:terraform-google-modules/terraform-google-sql-db.git//modules/postgresql?ref=v21.0.2"
 
   project_id                  = var.project.project_id
   region                      = var.project.region
@@ -54,7 +54,7 @@ module "postgresql" {
   disk_autoresize             = each.value.disk_autoresize
   disk_autoresize_limit       = each.value.disk_autoresize_limit
   ip_configuration = {
-    ipv4_enabled = false
+    ipv4_enabled    = false
     private_network = module.vpc[0].network_self_link
   }
   backup_configuration = {
@@ -66,7 +66,7 @@ module "postgresql" {
 
 module "mysql" {
   for_each = { for k, v in var.db : k => v if v.type == "mysql" }
-  source = "git::git@github.com:terraform-google-modules/terraform-google-sql-db.git//modules/mysql?ref=v21.0.2"
+  source   = "git::git@github.com:terraform-google-modules/terraform-google-sql-db.git//modules/mysql?ref=v21.0.2"
 
   project_id                  = var.project.project_id
   region                      = var.project.region
@@ -84,7 +84,7 @@ module "mysql" {
   disk_autoresize             = each.value.disk_autoresize
   disk_autoresize_limit       = each.value.disk_autoresize_limit
   ip_configuration = {
-    ipv4_enabled = false
+    ipv4_enabled    = false
     private_network = module.vpc[0].network_self_link
   }
   backup_configuration = {
@@ -105,11 +105,11 @@ resource "google_compute_address" "ip_address" {
 }
 
 module "template" {
-  for_each =  var.ce
-  source               = "git::https://github.com/terraform-google-modules/terraform-google-vm.git//modules/instance_template?ref=v12.0.0"
-  
-  project_id           = var.project.project_id
-  region               = var.project.region
+  for_each = var.ce
+  source   = "git::https://github.com/terraform-google-modules/terraform-google-vm.git//modules/instance_template?ref=v12.0.0"
+
+  project_id = var.project.project_id
+  region     = var.project.region
   # network              = module.vpc[0].network_self_link
   # subnetwork           = module.vpc[0].subnets_self_links[index(var.vpc[0].subnets_names, "${each.value.subnetwork_name}")]
   disk_size_gb         = each.value.disk_size_gb
@@ -126,7 +126,7 @@ module "template" {
 }
 
 module "compute" {
-  for_each =  var.ce
+  for_each            = var.ce
   source              = "git::https://github.com/terraform-google-modules/terraform-google-vm.git//modules/compute_instance?ref=v12.0.0"
   subnetwork_project  = var.project.project_id
   region              = var.project.region
@@ -151,8 +151,8 @@ provider "kubernetes" {
 }
 
 module "gke" {
-  count = var.gke == null ? 0 : 1
-  source                     = "git::https://github.com/terraform-google-modules/terraform-google-kubernetes-engine.git?ref=v33.0.1"
+  count  = var.gke == null ? 0 : 1
+  source = "git::https://github.com/terraform-google-modules/terraform-google-kubernetes-engine.git?ref=v33.0.1"
 
   project_id                 = var.project.project_id
   name                       = format("%s-%s-eks", var.project.company, var.project.env)

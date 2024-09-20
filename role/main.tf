@@ -12,9 +12,9 @@ provider "kubernetes" {
 }
 
 module "workload-identity" {
-  count = var.role == null ? 0 : 1
-  source              = "git::https://github.com/terraform-google-modules/terraform-google-kubernetes-engine.git//module/workload-identity?ref=v33.0.1"
-  
+  count  = var.role == null ? 0 : 1
+  source = "git::https://github.com/terraform-google-modules/terraform-google-kubernetes-engine.git//module/workload-identity?ref=v33.0.1"
+
   project_id          = var.project.project_id
   location            = var.project.region
   name                = var.role.name

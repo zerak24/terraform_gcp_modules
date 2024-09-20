@@ -1,11 +1,11 @@
 resource "google_storage_bucket" "default" {
-  count = var.bucket == null ? 0 : 1
-  project = var.project.project_id
+  count                       = var.bucket == null ? 0 : 1
+  project                     = var.project.project_id
   name                        = format("%s-%s-%s-bucket", var.project.company, var.project.env, var.bucket.name)
   location                    = var.project.region
   uniform_bucket_level_access = true
   storage_class               = "STANDARD"
-  force_destroy = false
+  force_destroy               = false
   website {
     main_page_suffix = "index.html"
     not_found_page   = "404.html"
@@ -13,8 +13,8 @@ resource "google_storage_bucket" "default" {
   dynamic "cors" {
     for_each = var.bucket.cors
     content {
-      origin = cors.value.origin
-      method = cors.value.method
+      origin          = cors.value.origin
+      method          = cors.value.method
       response_header = cors.value.response_header
       max_age_seconds = cors.value.max_age_seconds
     }
@@ -25,21 +25,21 @@ resource "google_storage_bucket" "default" {
 }
 
 resource "google_storage_bucket_iam_member" "default" {
-  count = var.bucket == null ? 0 : 1
+  count  = var.bucket == null ? 0 : 1
   bucket = google_storage_bucket.default[0].name
   role   = "roles/storage.objectViewer"
   member = "allUsers"
 }
 
 resource "google_compute_global_address" "default" {
-  count = var.cdn == null ? 0 : 1
+  count   = var.cdn == null ? 0 : 1
   project = var.project.project_id
-  name = format("%s-%s-%s-ip", var.project.company, var.project.env, var.bucket.name)
+  name    = format("%s-%s-%s-ip", var.project.company, var.project.env, var.bucket.name)
 }
 
 resource "google_compute_backend_bucket" "default" {
-  count = var.bucket == null ? 0 : 1
-  project = var.project.project_id
+  count       = var.bucket == null ? 0 : 1
+  project     = var.project.project_id
   name        = format("%s-%s-%s-backend-bucket", var.project.company, var.project.env, var.bucket.name)
   bucket_name = google_storage_bucket.default[0].name
   enable_cdn  = true
@@ -54,33 +54,33 @@ resource "google_compute_backend_bucket" "default" {
 }
 
 resource "google_compute_url_map" "default" {
-  count = var.cdn == null ? 0 : 1
-  project = var.project.project_id
-  name = format("%s-%s-%s-url-map", var.project.company, var.project.env, var.bucket.name)
+  count           = var.cdn == null ? 0 : 1
+  project         = var.project.project_id
+  name            = format("%s-%s-%s-url-map", var.project.company, var.project.env, var.bucket.name)
   default_service = google_compute_backend_bucket.default[0].id
 }
 
 resource "google_compute_managed_ssl_certificate" "default" {
-  count = var.cdn == null ? 0 : 1
+  count   = var.cdn == null ? 0 : 1
   project = var.project.project_id
-  name = format("%s-%s-%s-ssl-cert", var.project.company, var.project.env, var.bucket.name)
+  name    = format("%s-%s-%s-ssl-cert", var.project.company, var.project.env, var.bucket.name)
   managed {
     domains = var.cdn.managed_ssl_certificate_domains
   }
 }
 
 resource "google_compute_target_https_proxy" "default" {
-  count = var.cdn == null ? 0 : 1
-  project = var.project.project_id
-  name = format("%s-%s-%s-proxy", var.project.company, var.project.env, var.bucket.name)
-  url_map = google_compute_url_map.default[0].id
+  count            = var.cdn == null ? 0 : 1
+  project          = var.project.project_id
+  name             = format("%s-%s-%s-proxy", var.project.company, var.project.env, var.bucket.name)
+  url_map          = google_compute_url_map.default[0].id
   ssl_certificates = [google_compute_managed_ssl_certificate.default[0].id]
 }
 
 resource "google_compute_global_forwarding_rule" "default" {
-  count = var.cdn == null ? 0 : 1
-  project = var.project.project_id
-  name = format("%s-%s-%s-fw-rule", var.project.company, var.project.env, var.bucket.name)
+  count                 = var.cdn == null ? 0 : 1
+  project               = var.project.project_id
+  name                  = format("%s-%s-%s-fw-rule", var.project.company, var.project.env, var.bucket.name)
   ip_protocol           = "TCP"
   load_balancing_scheme = "EXTERNAL"
   port_range            = "80"
